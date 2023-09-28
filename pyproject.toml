@@ -4,8 +4,6 @@ version = "0.1.0"
 description = "Just an implementation of simple blockchain"
 authors = ["Ivan Zakutnii <zakutnii.ivan@gmail.com>"]
 license = "WTFPL"
-readme = "README.md"
-packages = [{include = "simple_blockchain"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
