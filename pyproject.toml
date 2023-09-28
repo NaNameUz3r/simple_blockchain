@@ -9,6 +9,7 @@ license = "WTFPL"
 python = "^3.11"
 pytest = "^7.4.2"
 dirty-equals = "^0.6.0"
+fastapi = "^0.103.1"
 
 
 [build-system]
