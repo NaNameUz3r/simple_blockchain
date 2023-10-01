@@ -1,5 +1,6 @@
 from datetime import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
+from pydantic import BaseModel
 from typing import Any
 import json
 import hashlib
@@ -8,7 +9,7 @@ import hashlib
 @dataclass
 class Block:
     index: int
-    timestamp: datetime
+    timestamp: str
     transactions: list[Any]
     proof_of_work: int
     previous_hash: str
@@ -17,7 +18,10 @@ class Block:
 class Blockchain(object):
     def __init__(self):
         self.chain: list[Block] = []
-        self.current_transactions = []
+        self.current_transactions: list[Any] = []
+        self.nodes: set = set()
+
+        self.new_block(previous_block_hash='1', proof_of_work=100)
 
     @property
     def get_last_block(self) -> Block:
@@ -25,7 +29,7 @@ class Blockchain(object):
         Last block getter from chain
         """
 
-        return self.chain[-1]
+        return self.chain[-1] if len(self.chain) > 0 else None
 
     def new_block(
         self,
@@ -45,7 +49,7 @@ class Blockchain(object):
 
         new_block = Block(
             index=len(self.chain) + 1,
-            timestamp=datetime.now(),
+            timestamp=datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
             transactions=self.current_transactions,
             proof_of_work=proof_of_work,
             previous_hash=previous_block_hash or self.hash(self.chain[-1]),
@@ -87,7 +91,8 @@ class Blockchain(object):
         """
 
         # Sort block for consistent hash
-        sorted_block = json.dumps(obj=block, sort_keys=True).encode()
+
+        sorted_block = json.dumps(obj=asdict(block), sort_keys=True).encode()
         return hashlib.sha256(string=sorted_block).hexdigest()
 
     def proof_of_work(self, last_proof: Any):
@@ -112,8 +117,9 @@ class Blockchain(object):
 
         return proof_count
 
+    @classmethod
     def is_valid_proof(
-        self,
+        cls,
         last_proof: int,
         proof: int,
     ):
