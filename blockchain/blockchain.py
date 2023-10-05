@@ -1,9 +1,11 @@
 from datetime import datetime
 from dataclasses import dataclass, asdict
-from pydantic import BaseModel
-from typing import Any
+from typing import Any, NewType
 import json
 import hashlib
+
+
+NodeMined = NewType("NodeMined", bool)
 
 
 @dataclass
@@ -15,21 +17,29 @@ class Block:
     previous_hash: str
 
 
+@dataclass
+class Transaction:
+    sender: str | NodeMined
+    recipient: str
+    amount: int
+
+
 class Blockchain(object):
     def __init__(self):
         self.chain: list[Block] = []
-        self.current_transactions: list[Any] = []
+        self.current_transactions: list[Transaction] = []
         self.nodes: set = set()
 
-        self.new_block(previous_block_hash='1', proof_of_work=100)
+        self.new_block(previous_block_hash="1", proof_of_work=100)
 
     @property
-    def get_last_block(self) -> Block:
+    def last_block(self) -> Block:
         """
         Last block getter from chain
         """
-
-        return self.chain[-1] if len(self.chain) > 0 else None
+        if len(self.chain) <= 0:
+            raise Exception("Blockchain is empty")
+        return self.chain[-1]
 
     def new_block(
         self,
@@ -61,7 +71,7 @@ class Blockchain(object):
 
     def new_transaction(
         self,
-        sender: str,
+        sender: str | NodeMined,
         recipient: str,
         amount: int,
     ) -> int:
@@ -76,10 +86,14 @@ class Blockchain(object):
         """
 
         self.current_transactions.append(
-            {"sender": sender, "recipient": recipient, "amount": amount}
+            Transaction(
+                sender=sender,
+                recipient=recipient,
+                amount=amount,
+            )
         )
 
-        return self.get_last_block.index + 1
+        return self.last_block.index + 1
 
     @staticmethod
     def hash(block: Block) -> str:
@@ -91,7 +105,6 @@ class Blockchain(object):
         """
 
         # Sort block for consistent hash
-
         sorted_block = json.dumps(obj=asdict(block), sort_keys=True).encode()
         return hashlib.sha256(string=sorted_block).hexdigest()
 
